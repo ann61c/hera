@@ -16,10 +16,18 @@ function get_the_link_items($id = null)
     if (!empty($bookmarks)) {
         $output .= '<ul class="link-items">';
         foreach ($bookmarks as $bookmark) {
-            $image = $bookmark->link_image ? '<img src="' . $bookmark->link_image . '" alt="' . $bookmark->link_name . '" class="avatar">' : get_avatar($bookmark->link_notes, 64);
-            $output .=  '<li class="link-item"><a class="link-item-inner" href="' . $bookmark->link_url . '" title="' . $bookmark->link_description . '" target="_blank" ><span class="sitename">
+            // Priority: link_image > link_notes (as URL) > gravatar fallback
+            if ($bookmark->link_image) {
+                $image = '<img src="' . esc_url($bookmark->link_image) . '" alt="' . esc_attr($bookmark->link_name) . '" class="avatar">';
+            } elseif ($bookmark->link_notes) {
+                $image = '<img src="' . esc_url($bookmark->link_notes) . '" alt="' . esc_attr($bookmark->link_name) . '" class="avatar">';
+            } else {
+                $image = get_avatar(md5($bookmark->link_url), 64);
+            }
+
+            $output .= '<li class="link-item"><a class="link-item-inner effect-apollo" href="' . esc_url($bookmark->link_url) . '" title="' . esc_attr($bookmark->link_description) . '" target="_blank"><span class="sitename">
              ' . $image . '
-             <strong>' . $bookmark->link_name . '</strong>' . $bookmark->link_description . '<i class="btn">' . __('visit', 'Hera') . '</i></span></a></li>';
+             <strong>' . esc_html($bookmark->link_name) . '</strong>' . esc_html($bookmark->link_description) . '<i class="btn">' . __('visit', 'Hera') . '</i></span></a></li>';
         }
         $output .= '</ul>';
     } else {
@@ -42,9 +50,10 @@ function get_link_items()
     $result = '';
     if (!empty($linkcats)) {
         foreach ($linkcats as $linkcat) {
-            $result .=  '<h3 class="link-title">' . $linkcat->name . '</h3>';
-            if ($linkcat->description) $result .= '<div class="link-description">' . $linkcat->description . '</div>';
-            $result .=  get_the_link_items($linkcat->term_id);
+            $result .= '<h3 class="link-title">' . $linkcat->name . '</h3>';
+            if ($linkcat->description)
+                $result .= '<div class="link-description">' . $linkcat->description . '</div>';
+            $result .= get_the_link_items($linkcat->term_id);
         }
     } else {
         $result = get_the_link_items();
@@ -57,7 +66,7 @@ function get_link_items()
 function hera_get_post_views($post_id = 0)
 {
 
-    $views_number = (int)get_post_meta($post_id, HERA_POST_VIEW_KEY, true);
+    $views_number = (int) get_post_meta($post_id, HERA_POST_VIEW_KEY, true);
 
     /**
      * Filters the returned views for a post.
