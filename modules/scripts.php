@@ -16,11 +16,18 @@ function get_the_link_items($id = null)
     if (!empty($bookmarks)) {
         $output .= '<ul class="link-items">';
         foreach ($bookmarks as $bookmark) {
-            // Priority: link_image > link_notes (as URL) > gravatar fallback
-            if ($bookmark->link_image) {
-                $image = '<img src="' . esc_url($bookmark->link_image) . '" alt="' . esc_attr($bookmark->link_name) . '" class="avatar">';
-            } elseif ($bookmark->link_notes) {
-                $image = '<img src="' . esc_url($bookmark->link_notes) . '" alt="' . esc_attr($bookmark->link_name) . '" class="avatar">';
+            // Priority: link_image > link_notes (as URL or email) > gravatar fallback
+            $image = '';
+            if (!empty($bookmark->link_image)) {
+                $image = '<img alt="" src="' . esc_url($bookmark->link_image) . '" class="avatar avatar-64 photo" height="64" width="64" decoding="async">';
+            } elseif (!empty($bookmark->link_notes)) {
+                // Check if link_notes is an email, if so use Gravatar
+                if (filter_var($bookmark->link_notes, FILTER_VALIDATE_EMAIL)) {
+                    $image = get_avatar($bookmark->link_notes, 64);
+                } else {
+                    // Otherwise treat as URL for direct image
+                    $image = '<img alt="" src="' . esc_url($bookmark->link_notes) . '" class="avatar avatar-64 photo" height="64" width="64" decoding="async">';
+                }
             } else {
                 $image = get_avatar(md5($bookmark->link_url), 64);
             }
