@@ -14,7 +14,23 @@ function hera_get_background_image($post_id, $width = null, $height = null)
         preg_match_all('/<img.*?(?: |\\t|\\r|\\n)?src=[\'"]?(.+?)[\'"]?(?:(?: |\\t|\\r|\\n)+.*?)?>/sim', $content, $strResult, PREG_PATTERN_ORDER);
         $n = count($strResult[1]);
         if ($n > 0) {
-            $output = $strResult[1][0];
+            $original_image = $strResult[1][0];
+            $path_parts = pathinfo($original_image);
+            // 确保图片地址有扩展名，再继续处理
+            if (isset($path_parts['extension'])) {
+                $thumbnail_url = $path_parts['dirname'] . '/' . $path_parts['filename'] . '-150x150.' . $path_parts['extension'];
+                
+                // 检查 150x150 缩略图是否存在
+                $headers = @get_headers($thumbnail_url);
+                if ($headers && strpos($headers[0], '200')) {
+                    $output = $thumbnail_url; // 存在，使用缩略图
+                } else {
+                    $output = $original_image; // 不存在，回退到原图
+                }
+            } else {
+                 // 如果图片地址没有扩展名（例如某些API返回的图片），直接使用原地址
+                 $output = $original_image;
+            }
         } else {
             $output = $defaltthubmnail;
         }
