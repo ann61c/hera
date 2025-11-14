@@ -47,7 +47,7 @@ global $heraSetting;
         </div>
         <?php if (hera_is_has_image(get_the_ID()) && !$heraSetting->get_setting('hide_home_cover')) : ?>
             <a href="<?php the_permalink(); ?>" class="hBlock--cover" title="<?php the_title(); ?>">
-                <img src="<?php echo hera_get_background_image(get_the_ID(), 184, 184); ?>" alt="<?php the_title(); ?>" class="hBlock--coverImage" itemprop="image" />
+                <img src="<?php echo hera_get_background_image(get_the_ID(), 150, 150); ?>" alt="<?php the_title(); ?>" class="hBlock--coverImage" itemprop="image" />
             </a>
         <?php endif; ?>
     </div>

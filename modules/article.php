@@ -4,7 +4,8 @@ function hera_get_background_image($post_id, $width = null, $height = null)
 {
     global $heraSetting;
     if (has_post_thumbnail($post_id)) {
-        $timthumb_src = wp_get_attachment_image_src(get_post_thumbnail_id($post_id), 'full');
+        $size = ($width === 150 && $height === 150) ? 'thumbnail' : 'full';
+        $timthumb_src = wp_get_attachment_image_src(get_post_thumbnail_id($post_id), $size);
         $output = $timthumb_src[0];
     } elseif (get_post_meta($post_id, '_banner', true)) {
         $output = get_post_meta($post_id, '_banner', true);
@@ -15,21 +16,16 @@ function hera_get_background_image($post_id, $width = null, $height = null)
         $n = count($strResult[1]);
         if ($n > 0) {
             $original_image = $strResult[1][0];
-            $path_parts = pathinfo($original_image);
-            // 确保图片地址有扩展名，再继续处理
-            if (isset($path_parts['extension'])) {
-                $thumbnail_url = $path_parts['dirname'] . '/' . $path_parts['filename'] . '-150x150.' . $path_parts['extension'];
-                
-                // 检查 150x150 缩略图是否存在
-                $headers = @get_headers($thumbnail_url);
-                if ($headers && strpos($headers[0], '200')) {
-                    $output = $thumbnail_url; // 存在，使用缩略图
+            if ($width === 150 && $height === 150) {
+                $attachment_id = attachment_url_to_postid($original_image);
+                if ($attachment_id) {
+                    $thumbnail_image = wp_get_attachment_image_src($attachment_id, 'thumbnail');
+                    $output = $thumbnail_image ? $thumbnail_image[0] : $original_image;
                 } else {
-                    $output = $original_image; // 不存在，回退到原图
+                    $output = $original_image;
                 }
             } else {
-                 // 如果图片地址没有扩展名（例如某些API返回的图片），直接使用原地址
-                 $output = $original_image;
+                $output = $original_image;
             }
         } else {
             $output = $defaltthubmnail;
